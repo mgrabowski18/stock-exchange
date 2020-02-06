@@ -1,32 +1,47 @@
 <template>
-  <div class="col-sm-6 col-md-4">
+  <div class="col-xs-12 col-sm-6 col-md-4">
     <div class="panel panel-success">
       <div class="panel-heading">
         <h3 class="panel-title">
           {{ stock.name }}
-          <small>Price: {{ stock.price }}</small>
+          <small>Price: {{ stock.price | currency }}</small>
         </h3>
       </div>
       <div class="panel-body">
-        <div class="pull-left">
-          <input type="number" class="form-control" placeholder="Quantity" v-model.number="quantity" />
-        </div>
-        <div class="pull-right">
-          <button 
-          class="btn btn-success" 
-          @click="buyStock" 
-          :disabled="quantity <= 0 || !Number.isInteger(quantity)">Buy</button>
-        </div>
+          <div class="pull-left col-xs-7">
+            <input
+              type="number"
+              class="form-control"
+              placeholder="Quantity"
+              v-model.number="quantity"
+            />
+          </div>
+          <div class="col-xs-5">
+            <button
+              class="btn"
+              :class="{ 'btn-danger': insufficientFunds, 'btn-success': !insufficientFunds }"
+              @click="buyStock"
+              :disabled="insufficientFunds || quantity <= 0 || !Number.isInteger(quantity)"
+            >{{ insufficientFunds ? "Insufficient Funds" : "Buy" }}</button>
+          </div>
       </div>
     </div>
   </div>
 </template>
 <script>
 export default {
-  props: ['stock'],
-  data(){
+  props: ["stock"],
+  data() {
     return {
-      quantity: 0, 
+      quantity: 0
+    };
+  },
+  computed: {
+    funds() {
+      return this.$store.getters.getStockFunds;
+    },
+    insufficientFunds() {
+      return this.quantity * this.stock.price > this.funds;
     }
   },
   methods: {
@@ -35,9 +50,9 @@ export default {
         stockId: this.stock.id,
         stockPrice: this.stock.price,
         quantity: this.quantity
-      }
-      this.$store.dispatch('buyStock', order)
-      this.quantity = 0
+      };
+      this.$store.dispatch("buyStock", order);
+      this.quantity = 0;
     }
   }
 };
